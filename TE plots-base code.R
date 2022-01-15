@@ -17,10 +17,10 @@
   #
   #     You should have received a copy of the GNU General Public License
   #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
+  
   # colour values utilise the scico package for colour-blind safe palettes (see Crameri et al. 2020, doi:10.1038/s41467-020-19160-7 and https://github.com/thomasp85/scico)
   # use scico::scico_palette_show() to view available colour palettes in the package. Code can easily be modified to use alternate colour packages, base colours or custom colour mapping.
-  }
+}
 
 #plotting code----
 {
@@ -34,7 +34,7 @@
   }
   
   #set working directory (path to read file from and save exports etc)----
-  setwd("D:/")
+  setwd("C:/")
   
   #load data, if loading file from place other than working directory use full file path and name----
   TEdata <- read_csv("dataset_sample.csv")
@@ -152,6 +152,7 @@
           names_transform = list(rLanth = as.numeric)
         )
       }
+      
       CINormPiv <- {
         mutate(
           CINormPiv,
@@ -172,6 +173,10 @@
             rLanth == 0.977 ~ 'Lu'
           )
         )
+      }
+      
+      CINormPiv <- {
+        drop_na(CINormPiv, value)
       }
     }
   }
@@ -782,6 +787,47 @@
     pZirconGeochem_box <- {
       pYbU_box + pCeAn_box + pEuAn_box + pl1_box + pl2_box + pl3_box + plot_layout(ncol = 1, guides = "collect") + plot_annotation(title = "50 Ma Binned Box and Whisker Plots")
     }
+  }
+  #Lanthanoid violin plot, spaced by Shannon Radii----
+  pLanthVio <- {
+    ggplot(CINormPiv,
+           aes(rLanth, value, group = lanth_symbol, fill = rLanth)) +
+      geom_violin(
+        draw_quantiles = c(0.25, 0.5, 0.75),
+        na.rm = TRUE,
+        colour = "black",
+        scale = "area",
+        bw = provenance::botev(log10(CINormPiv$value))
+      ) +
+      scale_fill_scico(
+        palette = "acton",
+        direction = -1,
+        begin = 0.2,
+        end = 0.8
+      ) +
+      scale_y_log10(
+        breaks = scales::breaks_log(),
+        labels = scales::label_number(),
+        expand = c(0, 0.005)
+      ) +
+      annotation_logticks(sides = "l") +
+      scale_x_reverse(
+        breaks = rlanth_sh_radii,
+        labels = rlanth_sh_label,
+        expand = c(0.005, 0.005)
+      ) +
+      theme_classic() +
+      theme(
+        legend.position = c(0.85, 0.25),
+        legend.background = element_rect(fill = "white", colour = "black")
+      ) +
+      labs(
+        y = expression("log"[10] * "[Analysis ppm / CI Chondrite]"),
+        x = NULL,
+        fill = "Ionic Radii (Å)",
+        title = "Lanthanoids plotted by decreasing Eight Coordinate (+3) Ionic Radii"
+      ) +
+      coord_cartesian(ylim = c(0.001, 50000))
   }
   #plot rendering----
   {
